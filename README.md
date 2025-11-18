@@ -12,6 +12,7 @@ enum Parent {
 let w = Parent.Widget()
 
 print("The Widget is described as \(w.description)")
+// => "The Widget is described as Parent.Widget"
 ```
 
 The `@Inscribe` macro will, in this case, expand into:
