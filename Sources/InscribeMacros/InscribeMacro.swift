@@ -11,13 +11,27 @@ public struct InscribeMacro: ExtensionMacro {
         conformingTo protocols: [TypeSyntax],
         in context: some MacroExpansionContext
     ) throws -> [ExtensionDeclSyntax] {
-        [try? ExtensionDeclSyntax("""
-        public extension \(raw: type.description) {
+        let stringModifiers = declaration.modifiers.map(\.name.trimmedDescription)
+        let maybeAccessModifier = stringModifiers.first(where: { accessModifiers.contains($0) })
+        let accessModifier = maybeAccessModifier.map { "\($0) " } ?? ""
+
+        return [try? ExtensionDeclSyntax("""
+        \(raw: accessModifier)extension \(raw: type.description) {
             var description: String { "\(raw: type.description)" }
             static var description: String { "\(raw: type.description)" }
         }
         """)].compactMap(\.self)
     }
+
+    // An `Array` is _probably_ quicker than a `Set<String>`
+    private static let accessModifiers: [String] = [
+        "fileprivate",
+        "internal",
+        "open",
+        "package",
+        "private",
+        "public",
+    ]
 }
 
 @main

@@ -14,8 +14,8 @@ let testMacros: [String: Macro.Type] = [
 #endif
 
 final class InscribeTests: XCTestCase {
+#if canImport(InscribeMacros)
     func testMacro() throws {
-        #if canImport(InscribeMacros)
         assertMacroExpansion(
             """
             @Inscribe public final class Foo {}
@@ -34,13 +34,9 @@ final class InscribeTests: XCTestCase {
             """,
             macros: testMacros
         )
-        #else
-        throw XCTSkip("macros are only supported when running tests for the host platform")
-        #endif
     }
 
     func testMacroOnNestedType() throws {
-        #if canImport(InscribeMacros)
         assertMacroExpansion(
             """
             public enum GrandParent {
@@ -67,8 +63,64 @@ final class InscribeTests: XCTestCase {
             """,
             macros: testMacros
         )
-        #else
-        throw XCTSkip("macros are only supported when running tests for the host platform")
-        #endif
     }
+
+    func testMacroExplicitAccessModifier() throws {
+        assertMacroExpansion(
+            """
+            public enum GrandParent {
+                public enum Parent {
+                    @Inscribe private final class Child {}
+                }
+            }
+            """,
+            expandedSource: """
+            public enum GrandParent {
+                public enum Parent {
+                    private final class Child {}
+                }
+            }
+
+            private extension GrandParent.Parent.Child {
+                var description: String {
+                    "GrandParent.Parent.Child"
+                }
+                static var description: String {
+                    "GrandParent.Parent.Child"
+                }
+            }
+            """,
+            macros: testMacros
+        )
+    }
+
+    func testMacroImplicitAccessModifier() throws {
+        assertMacroExpansion(
+            """
+            public enum GrandParent {
+                enum Parent {
+                    @Inscribe final class Child {}
+                }
+            }
+            """,
+            expandedSource: """
+            public enum GrandParent {
+                enum Parent {
+                    final class Child {}
+                }
+            }
+
+            extension GrandParent.Parent.Child {
+                var description: String {
+                    "GrandParent.Parent.Child"
+                }
+                static var description: String {
+                    "GrandParent.Parent.Child"
+                }
+            }
+            """,
+            macros: testMacros
+        )
+    }
+#endif
 }
