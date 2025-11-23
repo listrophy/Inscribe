@@ -9,25 +9,25 @@ import XCTest
 import InscribeMacros
 #endif
 
-final class InscribeTests: XCTestCase {
+final class InscribeSafeTests: XCTestCase {
 #if canImport(InscribeMacros)
     let testMacros: [String: Macro.Type] = [
-        "Inscribe": InscribeMacro.self,
+        "InscribeSafe": InscribeSafeMacro.self,
     ]
 
     func testMacro() throws {
         assertMacroExpansion(
             """
-            @Inscribe public final class Foo {}
+            @InscribeSafe public final class Foo {}
             """,
             expandedSource: """
             public final class Foo {}
 
             public extension Foo {
-                var description: String {
+                var __InscribeMacro_description: String {
                     "Foo"
                 }
-                static var description: String {
+                static var __InscribeMacro_description: String {
                     "Foo"
                 }
             }
@@ -41,7 +41,7 @@ final class InscribeTests: XCTestCase {
             """
             public enum GrandParent {
                 public enum Parent {
-                    @Inscribe public final class Child {}
+                    @InscribeSafe public final class Child {}
                 }
             }
             """,
@@ -53,10 +53,10 @@ final class InscribeTests: XCTestCase {
             }
 
             public extension GrandParent.Parent.Child {
-                var description: String {
+                var __InscribeMacro_description: String {
                     "GrandParent.Parent.Child"
                 }
-                static var description: String {
+                static var __InscribeMacro_description: String {
                     "GrandParent.Parent.Child"
                 }
             }
@@ -70,7 +70,7 @@ final class InscribeTests: XCTestCase {
             """
             public enum GrandParent {
                 public enum Parent {
-                    @Inscribe private final class Child {}
+                    @InscribeSafe private final class Child {}
                 }
             }
             """,
@@ -82,10 +82,10 @@ final class InscribeTests: XCTestCase {
             }
 
             private extension GrandParent.Parent.Child {
-                var description: String {
+                var __InscribeMacro_description: String {
                     "GrandParent.Parent.Child"
                 }
-                static var description: String {
+                static var __InscribeMacro_description: String {
                     "GrandParent.Parent.Child"
                 }
             }
@@ -99,7 +99,7 @@ final class InscribeTests: XCTestCase {
             """
             public enum GrandParent {
                 enum Parent {
-                    @Inscribe final class Child {}
+                    @InscribeSafe final class Child {}
                 }
             }
             """,
@@ -111,10 +111,10 @@ final class InscribeTests: XCTestCase {
             }
 
             extension GrandParent.Parent.Child {
-                var description: String {
+                var __InscribeMacro_description: String {
                     "GrandParent.Parent.Child"
                 }
-                static var description: String {
+                static var __InscribeMacro_description: String {
                     "GrandParent.Parent.Child"
                 }
             }
