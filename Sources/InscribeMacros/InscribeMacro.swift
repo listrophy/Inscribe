@@ -11,14 +11,40 @@ public struct InscribeMacro: ExtensionMacro {
         conformingTo protocols: [TypeSyntax],
         in context: some MacroExpansionContext
     ) throws -> [ExtensionDeclSyntax] {
+        try MacroImplementation.expansion(memberName: "description",
+                                          attachedTo: declaration,
+                                          providingExtnesionsOf: type)
+    }
+}
+
+public struct InscribeSafeMacro: ExtensionMacro {
+    public static func expansion(
+        of node: AttributeSyntax,
+        attachedTo declaration: some DeclGroupSyntax,
+        providingExtensionsOf type: some TypeSyntaxProtocol,
+        conformingTo protocols: [TypeSyntax],
+        in context: some MacroExpansionContext
+    ) throws -> [ExtensionDeclSyntax] {
+        try MacroImplementation.expansion(memberName: "__InscribeMacro_description",
+                                          attachedTo: declaration,
+                                          providingExtnesionsOf: type)
+    }
+}
+
+private enum MacroImplementation {
+    fileprivate static func expansion(
+        memberName: String,
+        attachedTo declaration: some DeclGroupSyntax,
+        providingExtnesionsOf type: some TypeSyntaxProtocol
+    ) throws -> [ExtensionDeclSyntax] {
         let stringModifiers = declaration.modifiers.map(\.name.trimmedDescription)
         let maybeAccessModifier = stringModifiers.first(where: { accessModifiers.contains($0) })
         let accessModifier = maybeAccessModifier.map { "\($0) " } ?? ""
 
         return [try? ExtensionDeclSyntax("""
         \(raw: accessModifier)extension \(raw: type.description) {
-            var description: String { "\(raw: type.description)" }
-            static var description: String { "\(raw: type.description)" }
+            var \(raw: memberName): String { "\(raw: type.description)" }
+            static var \(raw: memberName): String { "\(raw: type.description)" }
         }
         """)].compactMap(\.self)
     }
@@ -38,5 +64,6 @@ public struct InscribeMacro: ExtensionMacro {
 struct InscribePlugin: CompilerPlugin {
     let providingMacros: [Macro.Type] = [
         InscribeMacro.self,
+        InscribeSafeMacro.self,
     ]
 }
